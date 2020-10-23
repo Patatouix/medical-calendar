@@ -98,6 +98,39 @@ class Plugin_Name_Admin {
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/plugin-name-admin.js', array( 'jquery' ), $this->version, false );
 
-	}
+    }
+
+    /**
+	 * Register the JavaScript for the admin area.
+	 *
+	 * @since    1.0.0
+	 */
+	public function add_admin_menu_link() {
+
+		/**
+		 * This function is provided for demonstration purposes only.
+		 *
+		 * An instance of this class should be passed to the run() function
+		 * defined in Plugin_Name_Loader as all of the hooks are defined
+		 * in that particular class.
+		 *
+		 * The Plugin_Name_Loader will then create the relationship
+		 * between the defined hooks and the functions defined in this
+		 * class.
+		 */
+
+        add_menu_page(
+            'My First Page', // Title of the page
+            'My First Plugin', // Text to show on the menu link
+            'manage_options', // Capability requirement to see the link
+            $this->plugin_name,
+            array( $this, 'load_admin_page_content' ) // Calls function to require the partial
+        );
+    }
+
+    // Load the plugin admin page partial.
+    public function load_admin_page_content() {
+        require_once plugin_dir_path( __FILE__ ). 'partials/plugin-name-admin-display.php';
+    }
 
 }
