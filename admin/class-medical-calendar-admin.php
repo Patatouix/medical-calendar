@@ -121,7 +121,7 @@ class Medical_Calendar_Admin {
 		$opts['has_archive']							= FALSE;
 		$opts['hierarchical']							= FALSE;
 		$opts['map_meta_cap']							= TRUE;
-		$opts['menu_icon']								= 'dashicons-businessman';
+		$opts['menu_icon']								= 'dashicons-clock';
 		$opts['menu_position']							= 25;
 		$opts['public']									= TRUE;
 		$opts['publicly_querable']						= TRUE;

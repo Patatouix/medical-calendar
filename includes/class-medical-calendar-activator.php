@@ -33,7 +33,7 @@ class Medical_Calendar_Activator {
 
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-medical-calendar-admin.php';
 
-        Medical_Calendar_Admin::new_cpt_job();
+        Medical_Calendar_Admin::new_cpt_rdv();
 
         // Clear the permalinks after registering a custom post type (avoid 404 errors)
         flush_rewrite_rules();
