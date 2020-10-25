@@ -29,7 +29,16 @@ class Medical_Calendar_Admin {
 	 * @access   private
 	 * @var      string    $medical_calendar    The ID of this plugin.
 	 */
-	private $medical_calendar;
+    private $plugin_name;
+
+    /**
+	 * The plugin options.
+	 *
+	 * @since 		1.0.0
+	 * @access 		private
+	 * @var 		string 			$options    The plugin options.
+	 */
+	private $options;
 
 	/**
 	 * The version of this plugin.
@@ -47,10 +56,12 @@ class Medical_Calendar_Admin {
 	 * @param      string    $medical_calendar       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $medical_calendar, $version ) {
+	public function __construct( $plugin_name, $version ) {
 
-		$this->medical_calendar = $medical_calendar;
-		$this->version = $version;
+		$this->plugin_name = $plugin_name;
+        $this->version = $version;
+
+        $this->set_options();
 
 	}
 
@@ -73,7 +84,7 @@ class Medical_Calendar_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->medical_calendar, plugin_dir_url( __FILE__ ) . 'css/medical-calendar-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/medical-calendar-admin.css', array(), $this->version, 'all' );
 
 	}
 
@@ -96,7 +107,7 @@ class Medical_Calendar_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->medical_calendar, plugin_dir_url( __FILE__ ) . 'js/medical-calendar-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/medical-calendar-admin.js', array( 'jquery' ), $this->version, false );
 
     }
 
@@ -291,6 +302,238 @@ class Medical_Calendar_Admin {
 
 		include( plugin_dir_path( __FILE__ ) . 'partials/medical-calendar-admin-page-settings.php' );
 
-	} // page_options()
+    } // page_options()
+
+    /**
+	 * Registers settings fields with WordPress
+	 */
+	public function register_fields() {
+
+		// add_settings_field( $id, $title, $callback, $menu_slug, $section, $args );
+
+		add_settings_field(
+			'message-no-rdvs',
+			apply_filters( $this->plugin_name . 'label-message-no-rdvs', esc_html__( 'Message quand pas de Rdvs', 'medical-calendar' ) ),
+			array( $this, 'field_text' ),
+			$this->plugin_name,
+			$this->plugin_name . '-messages',
+			array(
+				'description' 	=> 'Ce message apparait quand il n\'y a aucun rendez-vous.',
+				'id' 			=> 'message-no-rdvs',
+				'value' 		=> 'Merci pour votre intérêt ! Il n\'y a pas de rendez-vous disponible en ce moment.',
+			)
+		);
+
+		/*add_settings_field(
+			'how-to-apply',
+			apply_filters( $this->plugin_name . 'label-how-to-apply', esc_html__( 'How to Apply', 'now-hiring' ) ),
+			array( $this, 'field_editor' ),
+			$this->plugin_name,
+			$this->plugin_name . '-messages',
+			array(
+				'description' 	=> 'Instructions for applying (contact email, phone, fax, address, etc).',
+				'id' 			=> 'howtoapply'
+			)
+		);*/
+
+    } // register_fields()
+
+    /**
+	 * Creates a text field
+	 *
+	 * @param 	array 		$args 			The arguments for the field
+	 * @return 	string 						The HTML field
+	 */
+	public function field_text( $args ) {
+
+		$defaults['class'] 			= 'text widefat';
+		$defaults['description'] 	= '';
+		$defaults['label'] 			= '';
+		$defaults['name'] 			= $this->plugin_name . '-options[' . $args['id'] . ']';
+		$defaults['placeholder'] 	= '';
+		$defaults['type'] 			= 'text';
+		$defaults['value'] 			= '';
+
+		apply_filters( $this->plugin_name . '-field-text-options-defaults', $defaults );
+
+		$atts = wp_parse_args( $args, $defaults );
+
+		if ( ! empty( $this->options[$atts['id']] ) ) {
+
+			$atts['value'] = $this->options[$atts['id']];
+
+		}
+
+		include( plugin_dir_path( __FILE__ ) . 'partials/' . $this->plugin_name . '-admin-field-text.php' );
+
+	} // field_text()
+
+	/**
+	 * Registers settings sections with WordPress
+	 */
+	public function register_sections() {
+
+		// add_settings_section( $id, $title, $callback, $menu_slug );
+
+		add_settings_section(
+			$this->plugin_name . '-messages',
+			apply_filters( $this->plugin_name . 'section-title-messages', esc_html__( 'Messages', 'medical-calendar' ) ),
+			array( $this, 'section_messages' ),
+			$this->plugin_name
+		);
+
+    } // register_sections()
+
+    /**
+	 * Creates a settings section
+	 *
+	 * @since 		1.0.0
+	 * @param 		array 		$params 		Array of parameters for the section
+	 * @return 		mixed 						The settings section
+	 */
+	public function section_messages( $params ) {
+
+		include( plugin_dir_path( __FILE__ ) . 'partials/medical-calendar-admin-section-messages.php' );
+
+	} // section_messages()
+
+	/**
+	 * Registers plugin settings
+	 *
+	 * @since 		1.0.0
+	 * @return 		void
+	 */
+	public function register_settings() {
+
+		// register_setting( $option_group, $option_name, $sanitize_callback );
+
+		register_setting(
+			$this->plugin_name . '-options',
+			$this->plugin_name . '-options',
+			array( $this, 'validate_options' )
+		);
+
+    } // register_settings()
+
+    /**
+	 * Sets the class variable $options
+	 */
+	private function set_options() {
+
+		$this->options = get_option( $this->plugin_name . '-options' );
+
+	} // set_options()
+
+    /**
+	 * Validates saved options
+	 *
+	 * @since 		1.0.0
+	 * @param 		array 		$input 			array of submitted plugin options
+	 * @return 		array 						array of validated plugin options
+	 */
+	public function validate_options( $input ) {
+
+		//wp_die( print_r( $input ) );
+
+		$valid 		= array();
+		$options 	= $this->get_options_list();
+
+		foreach ( $options as $option ) {
+
+			$name = $option[0];
+			$type = $option[1];
+
+			/*if ( 'repeater' === $type && is_array( $option[2] ) ) {
+
+				$clean = array();
+
+				foreach ( $option[2] as $field ) {
+
+					foreach ( $input[$field[0]] as $data ) {
+
+						if ( empty( $data ) ) { continue; }
+
+						$clean[$field[0]][] = $this->sanitizer( $field[1], $data );
+
+					} // foreach
+
+				} // foreach
+
+				$count = now_hiring_get_max( $clean );
+
+				for ( $i = 0; $i < $count; $i++ ) {
+
+					foreach ( $clean as $field_name => $field ) {
+
+						$valid[$option[0]][$i][$field_name] = $field[$i];
+
+					} // foreach $clean
+
+				} // for
+
+			} else {*/
+
+			    $valid[$option[0]] = $this->sanitizer( $type, $input[$name] );
+
+			//}
+
+			/*if ( ! isset( $input[$option[0]] ) ) { continue; }
+
+			$sanitizer = new Now_Hiring_Sanitize();
+
+			$sanitizer->set_data( $input[$option[0]] );
+			$sanitizer->set_type( $option[1] );
+
+			$valid[$option[0]] = $sanitizer->clean();
+
+			if ( $valid[$option[0]] != $input[$option[0]] ) {
+
+				add_settings_error( $option[0], $option[0] . '_error', esc_html__( $option[0] . ' error.', 'now-hiring' ), 'error' );
+
+			}
+
+			unset( $sanitizer );*/
+
+		}
+
+		return $valid;
+
+    } // validate_options()
+
+    private function sanitizer( $type, $data ) {
+
+		if ( empty( $type ) ) { return; }
+		if ( empty( $data ) ) { return; }
+
+		$return 	= '';
+		$sanitizer 	= new Medical_Calendar_Sanitize();
+
+		$sanitizer->set_data( $data );
+		$sanitizer->set_type( $type );
+
+		$return = $sanitizer->clean();
+
+		unset( $sanitizer );
+
+		return $return;
+
+	} // sanitizer()
+
+    /**
+	 * Returns an array of options names, fields types, and default values
+	 *
+	 * @return 		array 			An array of options
+	 */
+	public static function get_options_list() {
+
+		$options = array();
+
+		$options[] = array( 'message-no-rdvs', 'text', 'Merci pour votre intérêt ! Il n\'y a pas de rendez-vous disponible en ce moment.' );
+		//$options[] = array( 'howtoapply', 'editor', '' );
+		//$options[] = array( 'repeat-test', 'repeater', array( array( 'test1', 'text' ), array( 'test2', 'text' ), array( 'test3', 'text' ) ) );
+
+		return $options;
+
+	} // get_options_list()
 
 }

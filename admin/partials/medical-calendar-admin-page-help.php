@@ -8,8 +8,8 @@
  * @link       http://slushman.com
  * @since      1.0.0
  *
- * @package    Now Hiring
- * @subpackage Now Hiring/admin/partials
+ * @package    Medical Calendar
+ * @subpackage Medical Calendar/admin/partials
  */
 
 ?><h1><?php echo esc_html( get_admin_page_title() ); ?></h1>

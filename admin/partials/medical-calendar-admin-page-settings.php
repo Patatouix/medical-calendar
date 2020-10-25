@@ -19,6 +19,6 @@ settings_fields( $this->plugin_name . '-options' );
 
 do_settings_sections( $this->plugin_name );
 
-submit_button( 'Save Settings' );
+submit_button( 'Enregistrer les paramètres' );
 
 ?></form>
