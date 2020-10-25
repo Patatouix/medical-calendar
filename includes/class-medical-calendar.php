@@ -46,7 +46,16 @@ class Medical_Calendar {
 	 * @access   protected
 	 * @var      string    $medical_calendar    The string used to uniquely identify this plugin.
 	 */
-	protected $medical_calendar;
+    protected $medical_calendar;
+
+    /**
+	 * Sanitizer for cleaning user input
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      Medical_Calendar_Sanitize    $sanitizer    Sanitizes data
+	 */
+	private $sanitizer;
 
 	/**
 	 * The current version of the plugin.
@@ -77,7 +86,8 @@ class Medical_Calendar {
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
-		$this->define_public_hooks();
+        $this->define_public_hooks();
+        $this->define_metabox_hooks();
 
 	}
 
@@ -114,15 +124,26 @@ class Medical_Calendar {
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-medical-calendar-admin.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-medical-calendar-admin.php';
+
+        /**
+		 * The class responsible for defining all actions related to metaboxes
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-medical-calendar-admin-metaboxes.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-medical-calendar-public.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-medical-calendar-public.php';
 
-		$this->loader = new Medical_Calendar_Loader();
+        /**
+		 * The class responsible for sanitizing user input
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-medical-calendar-sanitize.php';
+
+        $this->loader = new Medical_Calendar_Loader();
+        $this->sanitizer = new Medical_Calendar_Sanitize();
 
 	}
 
@@ -175,7 +196,23 @@ class Medical_Calendar {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
-	}
+    }
+
+    /**
+	 * Register all of the hooks related to metaboxes
+	 *
+	 * @since 		1.0.0
+	 * @access 		private
+	 */
+	private function define_metabox_hooks() {
+
+		$plugin_metaboxes = new Medical_Calendar_Admin_Metaboxes( $this->get_medical_calendar(), $this->get_version() );
+
+		$this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'add_metaboxes' );
+		$this->loader->add_action( 'add_meta_boxes', $plugin_metaboxes, 'set_meta' );
+		$this->loader->add_action( 'save_post', $plugin_metaboxes, 'validate_meta', 10, 2 );
+
+	} // define_metabox_hooks()
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
