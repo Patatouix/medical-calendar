@@ -31,6 +31,9 @@ class Plugin_Name_Deactivator {
 	 */
 	public static function deactivate() {
 
+        // Clear the permalinks since we registered a custom post type in this plugin.
+        flush_rewrite_rules();
+
 	}
 
 }

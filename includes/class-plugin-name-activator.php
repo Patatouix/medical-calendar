@@ -31,6 +31,13 @@ class Plugin_Name_Activator {
 	 */
 	public static function activate() {
 
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-plugin-name-admin.php';
+
+        Plugin_Name_Admin::new_cpt_job();
+
+        // Clear the permalinks after registering a custom post type (avoid 404 errors)
+        flush_rewrite_rules();
+
 	}
 
 }
